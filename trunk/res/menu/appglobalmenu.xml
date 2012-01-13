@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/kmlOverlayOption"
+          android:icon="@drawable/ic_menu_kml"
+          android:title="KML Overlay" />
+    <item android:id="@+id/baseMapOption"
+          android:icon="@drawable/ic_launcher"
+          android:title="Base Map" />
+    <item android:id="@+id/toggleLocation"
+          android:icon="@drawable/ic_menu_loc"
+          android:title="Toggle Location" />
+</menu>
