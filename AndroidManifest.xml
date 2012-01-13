@@ -13,13 +13,19 @@
         android:label="bcMaps" >
         <activity
             android:name=".BcMapsEntryActivity"
-            android:label="Map" >
+            android:label="bcMaps" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <activity
+            android:name=".PreferencesActivity"
+            android:label="Preferences" >
+        </activity>
+        
     </application>
 
 </manifest>
