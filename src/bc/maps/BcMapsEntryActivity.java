@@ -62,12 +62,19 @@ public class BcMapsEntryActivity extends Activity {
     /** Called when the activity is first created. */
 	private BasicMapComponent mapComponent;
 	private boolean onRetainCalled;
+	
 	final int KML_DIALOG = 1293713;
 	final int BASE_DIALOG = 1299810;
+	final int WMS_PATH_DIALOG = 19398374;
+	final int CLOUDMADE_KEY_DIALOG = 1899473;
+	final int LOCALCACHE_PATH_DIALOG = 9162383;
+	
 	final int BASE_BING = 0;
 	final int BASE_AERIAL = 1;
 	final int BASE_OSM = 2;
 	final int BASE_WMS = 3;
+	final int BASE_CLOUDMADE = 4;
+	final int BASE_LOCALCACHE = 5;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -78,12 +85,20 @@ public class BcMapsEntryActivity extends Activity {
         onRetainCalled = false;
         
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        
+        // Akron
+        /*mapComponent =  new BasicMapComponent("a5bfc9e07964f8dddeb95fc584cd965d4f183a8b7736d4.37579663", new AppContext(this), 1, 1, 
+        				new WgsPoint(prefs.getFloat("originX", -81.52540F), prefs.getFloat("originY", 41.07783F)), 
+        				prefs.getInt("zoom", 18));
+        mapComponent.addKmlService(new KmlUrlReader("http://dl.dropbox.com/u/394378/Akron.kml?LANG=en_US.utf8&", 75, true ));*/
+        
         WgsPoint origin = new WgsPoint(prefs.getFloat("originX", -76.17813F), prefs.getFloat("originY", 43.09899F));
-        mapComponent = new BasicMapComponent("tutorial", new AppContext(this), 1, 1, origin, prefs.getInt("zoom", 6));
+        mapComponent =  new BasicMapComponent("a5bfc9e07964f8dddeb95fc584cd965d4f183a8b7736d4.37579663", 
+        				new AppContext(this), 1, 1, origin, prefs.getInt("zoom", 6));
         mapComponent.setFileSystem(new AndroidFileSystem());
         
         setBaseMap(prefs.getInt("baseMap", 0));
-        setKMLOverlay(prefs.getString("kml", null));
+        //setKMLOverlay(prefs.getString("kml", null));
         
         mapComponent.setPanningStrategy(new ThreadDrivenPanning());
         mapComponent.startMapping();
@@ -106,7 +121,6 @@ public class BcMapsEntryActivity extends Activity {
 				mapComponent.zoomOut();
 			}
 		});
-		
 	}
 	
 	@Override
@@ -143,9 +157,15 @@ public class BcMapsEntryActivity extends Activity {
     
     protected Dialog onCreateDialog(int id) {
     	AlertDialog dialog;
+    	LayoutInflater factory;
         switch(id) {
 	        case BASE_DIALOG:
-	        	final CharSequence[] items = {"Bing Street", "Bing Aerials", "OpenStreetMaps", "WMS Server", "CloudMade", "Local Tile Cache"};
+	        	final CharSequence[] items = {"Bing Street", 
+	        								  "Bing Aerials", 
+	        								  "OpenStreetMaps", 
+	        								  "WMS Server", 
+	        								  "CloudMade", 
+	        								  "Local Tile Cache"};
 	
 	        	AlertDialog.Builder builder = new AlertDialog.Builder(this);
 	        	builder.setTitle("Pick a Base Map Source");
@@ -159,10 +179,10 @@ public class BcMapsEntryActivity extends Activity {
 	        
 	        case KML_DIALOG:
 	        	dialog = new AlertDialog.Builder(this).create();
-            	LayoutInflater factory = LayoutInflater.from(this);
-            	final View textEntryView = factory.inflate(R.layout.kml_input, null);
+            	factory = LayoutInflater.from(this);
+            	final View kmlTextEntryView = factory.inflate(R.layout.kml_input, null);
             	
-            	dialog.setView(textEntryView);
+            	dialog.setView(kmlTextEntryView);
             	dialog.setTitle("Enter a path or URL to the KML data");
             	dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
 					
@@ -181,6 +201,42 @@ public class BcMapsEntryActivity extends Activity {
 		            }
 		        });		 
 	            break;
+	        case WMS_PATH_DIALOG:
+	        	dialog = new AlertDialog.Builder(this).create();
+            	factory = LayoutInflater.from(this);
+            	final View wmsTextEntryView = factory.inflate(R.layout.kml_input, null);
+            	
+            	dialog.setView(wmsTextEntryView);
+            	dialog.setTitle("Enter the WMS URL");
+            	dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+					
+					public void onCancel(DialogInterface arg0) {
+						arg0.cancel();
+					}
+		        });	
+            	dialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+		            public void onClick(DialogInterface dialog, int id) {
+		            	EditText pathText = (EditText)((AlertDialog)dialog).findViewById(R.id.wmsPathEditText);
+		            	String wmsURI = pathText.getText().toString();
+		            	
+		            	EditText layersText = (EditText)((AlertDialog)dialog).findViewById(R.id.wmsPathEditText);
+		            	String wmsLayers = layersText.getText().toString();
+		            	if (wmsURI.equals("") || wmsLayers.equals(""))
+		            		dialog.cancel();
+		            	else {
+		            		SimpleWMSMap wms = new SimpleWMSMap(
+		     	 				   wmsURI,
+		     	 				   256, 0, 18,
+		     	 				   wmsLayers, 
+		     	 				   "image/jpeg",
+		     	 				   "default", "GetMap", "© UCL");
+	     	 				wms.setWidthHeightRatio(2.0);
+	     	 				mapComponent.setMap(wms);
+		            	}
+		            }
+		        });
+	        	
+	 			break;
 	        default:
 	        	goAway();
 	            dialog = null;
@@ -213,7 +269,7 @@ public class BcMapsEntryActivity extends Activity {
 	    	
 	    	// Examples
 	        //KmlUrlReader reader = new KmlUrlReader("file:///sdcard/kmls/mh.kml", false);
-	    	//KmlUrlReader reader = new KmlUrlReader("http://dl.dropbox.com/u/394378/doc2.kml?LANG=en_US.utf8&", 35, true )
+	    	//KmlUrlReader reader = new KmlUrlReader("http://dl.dropbox.com/u/394378/Akron.kml?LANG=en_US.utf8&", 50, true );
 	    	try {
 		    	KmlUrlReader reader = new KmlUrlReader(path + "?LANG=en_US.utf8&", 100, true);
 		        mapComponent.addKmlService(reader);
@@ -245,14 +301,10 @@ public class BcMapsEntryActivity extends Activity {
     		case BASE_OSM:
     			mapComponent.setMap(OpenStreetMap.MAPNIK);
     			break;
-    		/*case BASE_WMS:
-    			SimpleWMSMap wms = new SimpleWMSMap(
-				   "http://iceds.ge.ucl.ac.uk/cgi-bin/icedswms?VERSION=1.1.1&SRS=EPSG:4326",
-				   256, 0, 18,"bluemarble,cities,countries", "image/jpeg",
-				   "default", "GetMap", "© UCL");
-				wms.setWidthHeightRatio(2.0);
-				mapComponent.setMap(wms);
-				break*/
+    		case BASE_WMS:
+    			showDialog(WMS_PATH_DIALOG);
+				break;
+				
     	}
     	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
     	SharedPreferences.Editor editor = prefs.edit();
