@@ -8,5 +8,11 @@
           android:title="Base Map" />
     <item android:id="@+id/toggleLocation"
           android:icon="@drawable/ic_menu_loc"
-          android:title="Toggle Location" />
+          android:title="Turn on GPS Location" />
+    <item android:id="@+id/saveMap"
+          android:icon="@drawable/ic_menu_loc"
+          android:title="Save Map Configuration" />
+    <item android:id="@+id/openHelp"
+          android:icon="@drawable/ic_menu_kml"
+          android:title="Help" />
 </menu>
